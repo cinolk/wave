@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    stages 
+    {
+        stage('Start') {
+            steps {
+            script{
+                def fileList = ${WORKSPACE}
+                def list = readFile("SonarQube.Analysis.xml").readLines()
+                for (item in list){
+                	print item
+                    def(jobToDeploy,version) = item.split(':')[0,1]
+                    println(jobToDeploy)
+                    println(version)
+                    build job: jobToDeploy, parameters: [string(name: 'version', value: version)]
+                    println("-----------JOB COMPLETED SUCUSSFUL---------")
+                    }
+                }
+            }
+        }          
+        stage('End') {
+            steps {
+                sh 'ls'
+            }
+        }
+    }
+}
+
+
+// the second file is as below where the data is fetched
+// test1_deploy:2.3
+//test2_deploy:12.4
