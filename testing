@@ -1,2 +1,30 @@
---- 
 
+
+pipeline {
+    agent any
+    stages{
+        stage("Start"){
+            steps{
+                script{
+                    withCredentials([usernamePassword(credentialsId: 'tomcat-server-user', passwordVariable: 'password', usernameVariable: 'username')]) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no $username@x.x.x -p $password <<EOF
+                        TOMCAT_VERSION=9.0.65
+                        TOMCAT_MAJOR_VERSION=`echo $TOMCAT_VERSION | cut -d '.' -f1`
+                        BINARY_FILE=apache-tomcat-${TOMCAT_VERSION}
+                        CURR_DATE=`date +"%m-%d-%y"`
+                        #cp -pR /opt/tomcat-9 /opt/tomcat_backup_${CURR_DATE}
+                        mkdir -p /opt/tomcat
+                        curl -o /opt/${BINARY_FILE}.tar.gz https://dlcdn.apache.org/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz
+                        tar -xvf /opt/${BINARY_FILE}.tar.gz -C /opt/tomcat --strip-components=1
+                        rm -Rf /opt/${BINARY_FILE}.tar.gz
+                        sh /opt/tomcat/bin/startup.sh
+
+                        EOF
+                        """
+                        }
+                }
+            }
+        }
+    }
+}
